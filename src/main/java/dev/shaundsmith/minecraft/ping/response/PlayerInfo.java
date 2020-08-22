@@ -1,5 +1,8 @@
 package dev.shaundsmith.minecraft.ping.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -10,9 +13,11 @@ import lombok.Value;
  * @since 1.0.0
  */
 @Value
+@AllArgsConstructor(onConstructor_ = @JsonCreator)
 public class PlayerInfo {
 
     /** The display name of an online player. */
-    @NonNull private final String name;
+    @JsonProperty("name")
+    @NonNull String name;
 
 }

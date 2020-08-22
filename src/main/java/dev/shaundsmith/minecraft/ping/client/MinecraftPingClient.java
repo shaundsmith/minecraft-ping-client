@@ -18,7 +18,6 @@ public class MinecraftPingClient {
 
     private static final byte[] REQUEST_PACKET = new byte[]{0x00};
 
-    private final InetSocketAddress serverAddress;
     private final SocketFactory socketFactory;
     private final HandshakeFactory handshakeFactory;
     private final ObjectMapper objectMapper;
@@ -26,16 +25,13 @@ public class MinecraftPingClient {
     /**
      * Constructs a new Minecraft ping client.
      *
-     * @param serverAddress address of the Minecraft server
      * @param socketFactory factory for creating sockets for a given socket address
      * @param handshakeFactory factory for creating handshake packets
      * @param objectMapper object mapper for deserializing JSON payloads from the Minecraft server
      */
-    public MinecraftPingClient(@NonNull InetSocketAddress serverAddress,
-                               @NonNull SocketFactory socketFactory,
+    public MinecraftPingClient(@NonNull SocketFactory socketFactory,
                                @NonNull HandshakeFactory handshakeFactory,
                                @NonNull ObjectMapper objectMapper) {
-        this.serverAddress = serverAddress;
         this.socketFactory = socketFactory;
         this.handshakeFactory = handshakeFactory;
         this.objectMapper = objectMapper;
@@ -44,12 +40,14 @@ public class MinecraftPingClient {
     /**
      * Retrieves the status of a Minecraft server from a ping request.
      *
+     * @param serverAddress the address of the minecraft server
+     *
      * @return the status of the Minecraft server
      *
      * @throws MinecraftClientException if an error occurs whilst connecting to the server
      * @throws MinecraftClientException if the server response is incorrectly formatted
      */
-    public MinecraftStatus getStatus() throws MinecraftClientException {
+    public MinecraftStatus getStatus(@NonNull InetSocketAddress serverAddress) throws MinecraftClientException {
         String jsonResponse;
 
         /*

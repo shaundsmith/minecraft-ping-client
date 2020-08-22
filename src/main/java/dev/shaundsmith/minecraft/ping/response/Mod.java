@@ -1,6 +1,8 @@
 package dev.shaundsmith.minecraft.ping.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Value;
 
 /**
@@ -12,12 +14,13 @@ import lombok.Value;
  * @since 1.0.0
  */
 @Value
+@AllArgsConstructor(onConstructor_ = @JsonCreator)
 public class Mod {
 
     /** Name of the mod. */
-    @JsonProperty("modid") private final String name;
+    @JsonProperty("modid") String name;
 
     /** Version number of the mod. */
-    private final String version;
+    @JsonProperty("version") String version;
 
 }

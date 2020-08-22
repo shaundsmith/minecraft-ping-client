@@ -1,5 +1,8 @@
 package dev.shaundsmith.minecraft.ping.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Value;
 
 /**
@@ -10,9 +13,10 @@ import lombok.Value;
  * @see <a href="https://wiki.vg/Chat">https://wiki.vg/Chat</a>
  */
 @Value
+@AllArgsConstructor(onConstructor_ = @JsonCreator)
 public class Chat {
 
     /** Text body of the chat message. */
-    private final String text;
+    @JsonProperty("text") String text;
 
 }

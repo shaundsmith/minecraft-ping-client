@@ -6,7 +6,6 @@ import dev.shaundsmith.minecraft.ping.response.MinecraftStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -37,7 +36,7 @@ class MinecraftPingClientTest {
 
     @BeforeEach
     void beforeEach() throws Exception {
-        theClient = new MinecraftPingClient(ANY_SERVER_ADDRESS, address -> mockedSocket, mockedHandshakeFactory, objectMapper);
+        theClient = new MinecraftPingClient(address -> mockedSocket, mockedHandshakeFactory, objectMapper);
         given(mockedSocket.getInputStream()).willReturn(mockedInputStream);
         given(mockedSocket.getOutputStream()).willReturn(mockedOutputStream);
     }
@@ -49,9 +48,9 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
         given(mockedSocketFactory.createSocket(any())).willReturn(mockedSocket);
-        theClient = new MinecraftPingClient(theServerAddress, mockedSocketFactory, mockedHandshakeFactory, objectMapper);
+        theClient = new MinecraftPingClient(mockedSocketFactory, mockedHandshakeFactory, objectMapper);
 
-        theClient.getStatus();
+        theClient.getStatus(theServerAddress);
 
         then(mockedSocketFactory).should().createSocket(theServerAddress);
     }
@@ -63,7 +62,7 @@ class MinecraftPingClientTest {
         givenAResponseBodyIsReturned();
         given(mockedHandshakeFactory.create(ANY_SERVER_ADDRESS, VarInt.of(-1))).willReturn(theHandshake);
 
-        theClient.getStatus();
+        theClient.getStatus(ANY_SERVER_ADDRESS);
 
         then(mockedOutputStream).should().writePacket(theHandshake);
     }
@@ -73,7 +72,7 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
 
-        theClient.getStatus();
+        theClient.getStatus(ANY_SERVER_ADDRESS);
 
         then(mockedOutputStream).should().writePacket(new byte[]{0x00});
     }
@@ -85,7 +84,7 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         given(mockedInputStream.readString()).willReturn(json);
 
-        MinecraftStatus returnedStatus = theClient.getStatus();
+        MinecraftStatus returnedStatus = theClient.getStatus(ANY_SERVER_ADDRESS);
 
         assertThat(returnedStatus).isEqualTo(expectedStatus);
     }
@@ -94,7 +93,7 @@ class MinecraftPingClientTest {
     void shouldThrowAnException_WhenTheResponsePacketIdIsNot0x00() throws Exception {
         given(mockedInputStream.readVarInt()).willReturn(VarInt.of(0x01));
 
-        Throwable theException = catchThrowable(() -> theClient.getStatus());
+        Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
 
         assertThat(theException)
                 .isInstanceOf(MinecraftClientException.class)
@@ -107,7 +106,7 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         given(mockedInputStream.readString()).willReturn(json);
 
-        Throwable theException = catchThrowable(() -> theClient.getStatus());
+        Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
 
         assertThat(theException)
                 .isInstanceOf(MinecraftClientException.class)
@@ -119,7 +118,7 @@ class MinecraftPingClientTest {
     void shouldThrowAnException_WhenAnErrorOccursWhilstMakingTheRequest() throws Exception {
         given(mockedInputStream.readVarInt()).willThrow(new IOException(""));
 
-        Throwable theException = catchThrowable(() -> theClient.getStatus());
+        Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
 
         assertThat(theException)
                 .isInstanceOf(MinecraftClientException.class)
