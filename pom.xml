@@ -25,7 +25,7 @@
     </scm>
 
     <properties>
-        <sonar.jacoc.reportPath>${build.outputDirectory}/coverage-reports/jacoco-unit.exec</sonar.jacoc.reportPath>
+        <sonar.jacoc.reportPath>${project.build.outputDirectory}/coverage-reports/jacoco-unit.exec</sonar.jacoc.reportPath>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
