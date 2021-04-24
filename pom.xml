@@ -28,6 +28,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>${distributionManagement.snapshotRepository.id}</id>
+            <url>${distributionManagement.snapshotRepository.url}</url>
+        </snapshotRepository>
+        <repository>
+            <id>${distributionManagement.repository.id}</id>
+            <url>${distributionManagement.repository.url}</url>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
