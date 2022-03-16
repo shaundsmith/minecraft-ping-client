@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
  * @since 1.0.0
  */
 @FunctionalInterface
-public interface SocketFactory {
+interface SocketFactory {
 
     /**
      * Creates a socket for the specified address.

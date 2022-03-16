@@ -18,7 +18,8 @@ class MinecraftInputStreamTest {
 
     @ParameterizedTest
     @MethodSource("varInts")
-    void shouldReadAVarIntFromTheStream(VarInt varInt) throws Exception {
+    void reads_a_var_int_from_the_stream(VarInt varInt) throws Exception {
+
         MinecraftInputStream inputStream = new MinecraftInputStream(streamOf(varInt.getValueAsBytes()));
 
         VarInt readVarInt = inputStream.readVarInt();
@@ -27,6 +28,7 @@ class MinecraftInputStreamTest {
     }
 
     static Stream<VarInt> varInts() {
+
         return Stream.of(
                 VarInt.of(120),
                 VarInt.of(700),
@@ -36,7 +38,8 @@ class MinecraftInputStreamTest {
     }
 
     @Test
-    void shouldThrowAnException_WhenTheVarIntExceeds5Bytes() {
+    void var_int_must_not_exceed_five_bytes() {
+
         MinecraftInputStream inputStream = new MinecraftInputStream(streamOf(new byte[]{
                 -0b10000000, -0b10000000, -0b10000000, -0b10000000, -0b10000000, -0b10000000
         }));
@@ -49,7 +52,8 @@ class MinecraftInputStreamTest {
     }
 
     @Test
-    void shouldReadAStringFromTheStream_WhenTheStringIsPrefixedWithItsLength() throws Exception {
+    void reads_a_string_from_the_stream() throws Exception {
+
         String theString = "a string of words";
         MinecraftInputStream inputStream = new MinecraftInputStream(
                 streamOf(VarInt.of(theString.length()).getValueAsBytes(), theString.getBytes())
@@ -61,7 +65,8 @@ class MinecraftInputStreamTest {
     }
 
     @Test
-    void shouldCloseTheStream() throws Exception {
+    void closes_the_stream() throws Exception {
+
         InputStream mockedInputStream = mock(InputStream.class);
         MinecraftInputStream inputStream = new MinecraftInputStream(mockedInputStream);
 
@@ -71,12 +76,14 @@ class MinecraftInputStreamTest {
     }
 
     private static ByteArrayInputStream streamOf(byte[]... elements) {
+
         byte[] streamContents = merge(elements);
         return new ByteArrayInputStream(streamContents);
     }
 
 
     private static byte[] merge(byte[]... elements) {
+
         byte[] merged = new byte[getSizeTotalSize(elements)];
         int currentPosition = 0;
         for (byte[] element: elements) {
@@ -89,6 +96,7 @@ class MinecraftInputStreamTest {
     }
 
     private static int getSizeTotalSize(byte[]... elements) {
+
         int totalSize = 0;
         for (byte[] element: elements) {
             totalSize += element.length;

@@ -13,7 +13,8 @@ class VarIntTest {
 
     @ParameterizedTest
     @MethodSource("varIntBytes")
-    void shouldReturnAByteRepresentationOfTheVarInt(int value, byte[] expectedBytes) {
+    void returns_a_byte_array(int value, byte[] expectedBytes) {
+
         VarInt varInt = VarInt.of(value);
 
         byte[] bytes = varInt.getValueAsBytes();
@@ -37,7 +38,8 @@ class VarIntTest {
     }
 
     @Test
-    void shouldPrefixAllBytesExceptTheLastWith1_WhenReturningTheBytes() {
+    void all_bytes_except_the_last_should_be_prefixed_with_one() {
+
         VarInt varInt = VarInt.of(ANY_LARGE_VALUE);
 
         byte[] bytes = varInt.getValueAsBytes();
@@ -49,7 +51,8 @@ class VarIntTest {
     }
 
     @Test
-    void shouldPrefixTheLastByteWith0_WhenReturningTheBytes() {
+    void the_last_byte_should_be_prefixed_with_zero() {
+
         VarInt varInt = VarInt.of(ANY_LARGE_VALUE);
 
         byte[] bytes = varInt.getValueAsBytes();
@@ -59,7 +62,8 @@ class VarIntTest {
     }
 
     @Test
-    void shouldReturnAnInt_WhenReturningTheVarIntAsAnInteger() {
+    void returns_an_integer() {
+
         int intValue = 43874;
         VarInt varInt = VarInt.of(intValue);
 

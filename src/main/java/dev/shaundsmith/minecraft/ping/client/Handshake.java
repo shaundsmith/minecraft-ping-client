@@ -7,15 +7,39 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
- * Factory for creating handshake packages for a Minecraft "ping" server interaction.
- *
- * @author Shaun Smith
- * @since 1.0.0
+ * A handshake for interacting with a Minecraft server.
  */
-public final class HandshakeFactory {
+class Handshake {
+
+    private final int packetId;
+    private final VarInt protocolVersion;
+    private final InetSocketAddress serverAddress;
 
     /**
-     * Creates a handshake packet for interacting with a Minecraft server.
+     * Creates a new {@code Handshake} using the default protocol version (-1).
+     *
+     * @param packetId the ID of the packet byte
+     * @param serverAddress the address of the server that the handshake is for
+     */
+    Handshake(int packetId, @NonNull InetSocketAddress serverAddress) {
+        this(packetId, VarInt.of(-1), serverAddress);
+    }
+
+    /**
+     * Creates a new {@code Handshake}.
+     *
+     * @param packetId the ID of the packet byte
+     * @param protocolVersion protocol version of the target server
+     * @param serverAddress the address of the server that the handshake is for
+     */
+    Handshake(int packetId, @NonNull VarInt protocolVersion, @NonNull InetSocketAddress serverAddress) {
+        this.packetId = packetId;
+        this.protocolVersion = protocolVersion;
+        this.serverAddress = serverAddress;
+    }
+
+    /**
+     * Creates a handshake packet.
      *
      * <p>The handshake packet is composed of a series of fields:
      *
@@ -27,20 +51,18 @@ public final class HandshakeFactory {
      *     <li>The next state (varint): 1 for status.</li>
      * </ol>
      *
-     * @param serverAddress address of the server to create the handshake for
-     * @param protocolVersion protocol version of the target server. -1 if not known.
-     *
      * @return a handshake packet for the provided server address
      *
      * @throws IOException if an error occurs while creating the handshake packet
      *
      * @see <a href="https://wiki.vg/Server_List_Ping">https://wiki.vg/Server_List_Ping</a>
      */
-    byte[] create(@NonNull InetSocketAddress serverAddress, @NonNull VarInt protocolVersion) throws IOException {
+    byte[] toHandshakePacket() throws IOException {
+
         try (ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
              MinecraftOutputStream outputStream = new MinecraftOutputStream(byteArrayStream)) {
 
-            outputStream.write(0x00);
+            outputStream.write(packetId);
             outputStream.writeVarInt(protocolVersion);
             outputStream.writeString(serverAddress.getHostString());
             outputStream.writeShort(serverAddress.getPort());

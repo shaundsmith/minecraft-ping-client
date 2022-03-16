@@ -1,2 +1,12 @@
 # minecraft-ping-client
-Client for making requests to a Minecraft "ping" endpoint.
+> A simple client for making requests to a Minecraft server's "ping" endpoint.
+
+
+## Installation
+
+
+## Use
+#### Constructing the client
+
+
+#### 

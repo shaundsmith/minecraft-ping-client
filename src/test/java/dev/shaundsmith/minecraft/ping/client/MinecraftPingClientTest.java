@@ -29,26 +29,26 @@ class MinecraftPingClientTest {
     @Mock private MinecraftOutputStream mockedOutputStream;
     @Mock private MinecraftInputStream mockedInputStream;
     @Mock private MinecraftSocket mockedSocket;
-    @Mock private HandshakeFactory mockedHandshakeFactory;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private MinecraftPingClient theClient;
 
     @BeforeEach
     void beforeEach() throws Exception {
-        theClient = new MinecraftPingClient(address -> mockedSocket, mockedHandshakeFactory, objectMapper);
+        theClient = new MinecraftPingClient(address -> mockedSocket, objectMapper);
         given(mockedSocket.getInputStream()).willReturn(mockedInputStream);
         given(mockedSocket.getOutputStream()).willReturn(mockedOutputStream);
     }
 
     @Test
-    void shouldCreateASocketForTheServerAddress_WhenRetrievingTheStatus() throws Exception {
+    void creates_a_socket_for_the_server_address() throws Exception {
+
         SocketFactory mockedSocketFactory = mock(SocketFactory.class);
         InetSocketAddress theServerAddress = ANY_SERVER_ADDRESS;
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
         given(mockedSocketFactory.createSocket(any())).willReturn(mockedSocket);
-        theClient = new MinecraftPingClient(mockedSocketFactory, mockedHandshakeFactory, objectMapper);
+        theClient = new MinecraftPingClient(mockedSocketFactory, objectMapper);
 
         theClient.getStatus(theServerAddress);
 
@@ -56,19 +56,20 @@ class MinecraftPingClientTest {
     }
 
     @Test
-    void shouldPerformAHandshake_WhenRetrievingTheStatus() throws Exception {
-        byte[] theHandshake = ANY_HANDSHAKE;
+    void performs_a_handshake_with_the_server() throws Exception {
+
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
-        given(mockedHandshakeFactory.create(ANY_SERVER_ADDRESS, VarInt.of(-1))).willReturn(theHandshake);
 
         theClient.getStatus(ANY_SERVER_ADDRESS);
 
-        then(mockedOutputStream).should().writePacket(theHandshake);
+        then(mockedOutputStream).should()
+                .writePacket(new Handshake(0x00, ANY_SERVER_ADDRESS).toHandshakePacket());
     }
 
     @Test
-    void shouldSendThe0x00RequestPacket_WhenRetrievingTheStatus() throws Exception {
+    void sends_the_0x00_request_packet() throws Exception {
+
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
 
@@ -78,7 +79,8 @@ class MinecraftPingClientTest {
     }
 
     @Test
-    void shouldParseTheJsonResponse_WhenRetrievingTheStatus() throws Exception {
+    void parses_the_json_response_returned_from_the_server() throws Exception {
+
         MinecraftStatus expectedStatus = aMinecraftStatus().build();
         String json = objectMapper.writeValueAsString(expectedStatus);
         givenTheResponsePacketIsReturned();
@@ -90,7 +92,8 @@ class MinecraftPingClientTest {
     }
 
     @Test
-    void shouldThrowAnException_WhenTheResponsePacketIdIsNot0x00() throws Exception {
+    void require_the_response_packet_id_to_be_0x00() throws Exception {
+
         given(mockedInputStream.readVarInt()).willReturn(VarInt.of(0x01));
 
         Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
@@ -101,7 +104,8 @@ class MinecraftPingClientTest {
     }
 
     @Test
-    void shouldThrowAnException_WhenTheResponseJsonIsInvalid() throws Exception {
+    void request_the_response_data_to_be_valid_json() throws Exception {
+
         String json = "{some-json: 38928392}";
         givenTheResponsePacketIsReturned();
         given(mockedInputStream.readString()).willReturn(json);
@@ -115,7 +119,8 @@ class MinecraftPingClientTest {
     }
 
     @Test
-    void shouldThrowAnException_WhenAnErrorOccursWhilstMakingTheRequest() throws Exception {
+    void requires_the_request_to_be_successful() throws Exception {
+
         given(mockedInputStream.readVarInt()).willThrow(new IOException(""));
 
         Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
@@ -127,10 +132,12 @@ class MinecraftPingClientTest {
     }
 
     private void givenTheResponsePacketIsReturned() throws Exception {
+
         given(mockedInputStream.readVarInt()).willReturn(VarInt.of(0x00));
     }
 
     private void givenAResponseBodyIsReturned() throws Exception {
+
         given(mockedInputStream.readString()).willReturn("{}");
     }
 

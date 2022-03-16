@@ -24,7 +24,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldWriteAPacketToTheOutputStream() throws Exception {
+    void writes_a_packet_to_the_output_stream() throws Exception {
+
         byte[] packet = new byte[]{123, 64, 18, -15};
 
         outputStream.writePacket(packet);
@@ -33,7 +34,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldPrependAPacketWithItsSize_WhenWritingAPacketToTheOutputStream() throws Exception {
+    void prepends_a_packet_with_its_size_when_writing_to_the_output_stream() throws Exception {
+
         byte[] packet = new byte[]{123, 64, 18, -15};
 
         outputStream.writePacket(packet);
@@ -44,7 +46,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldWriteAStringAsBytesToTheOutputStream() throws Exception {
+    void writes_a_string_to_the_output_stream() throws Exception {
+
         String string = "a string";
 
         outputStream.writeString(string);
@@ -53,7 +56,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldPrependAStringWithItsLength_WhenWritingAStringToTheOutputStream() throws Exception {
+    void prepends_a_string_with_its_length_when_writing_to_the_output_stream() throws Exception {
+
         String string = "a string";
 
         outputStream.writeString(string);
@@ -64,7 +68,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldWriteAShortToTheOutputStream() throws Exception {
+    void writes_a_short_to_the_output_stream() throws Exception {
+
         int aShort = 47378;
 
         outputStream.writeShort(aShort);
@@ -73,7 +78,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldWriteAByteToTheOutputStream() throws Exception {
+    void writes_a_byte_to_the_output_stream() throws Exception {
+
         int aSingleByte = 4546;
 
         outputStream.write(aSingleByte);
@@ -82,7 +88,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldWriteAVarIntAsBytesToTheOutputStream() throws Exception {
+    void writes_a_var_int_to_the_output_stream() throws Exception {
+
         VarInt varInt = VarInt.of(348);
 
         outputStream.writeVarInt(varInt);
@@ -91,7 +98,8 @@ class MinecraftOutputStreamTest {
     }
 
     @Test
-    void shouldCloseTheStream() throws Exception {
+    void closes_the_stream() throws Exception {
+
         outputStream.close();
 
         then(mockedOutputStream).should().close();

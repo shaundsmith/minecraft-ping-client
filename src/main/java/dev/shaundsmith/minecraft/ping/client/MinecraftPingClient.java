@@ -19,21 +19,17 @@ public class MinecraftPingClient {
     private static final byte[] REQUEST_PACKET = new byte[]{0x00};
 
     private final SocketFactory socketFactory;
-    private final HandshakeFactory handshakeFactory;
     private final ObjectMapper objectMapper;
 
     /**
      * Constructs a new Minecraft ping client.
      *
      * @param socketFactory factory for creating sockets for a given socket address
-     * @param handshakeFactory factory for creating handshake packets
-     * @param objectMapper object mapper for deserializing JSON payloads from the Minecraft server
+     * @param objectMapper  object mapper for deserializing JSON payloads from the Minecraft server
      */
-    public MinecraftPingClient(@NonNull SocketFactory socketFactory,
-                               @NonNull HandshakeFactory handshakeFactory,
-                               @NonNull ObjectMapper objectMapper) {
+    MinecraftPingClient(@NonNull SocketFactory socketFactory,
+                        @NonNull ObjectMapper objectMapper) {
         this.socketFactory = socketFactory;
-        this.handshakeFactory = handshakeFactory;
         this.objectMapper = objectMapper;
     }
 
@@ -63,7 +59,9 @@ public class MinecraftPingClient {
              MinecraftInputStream inputStream = socket.getInputStream()) {
 
             // 1. Send the handshake package to the server
-            outputStream.writePacket(handshakeFactory.create(serverAddress, VarInt.of(-1)));
+            final VarInt protocolVersion = VarInt.of(-1);
+            Handshake handshake = new Handshake(0x00, protocolVersion, serverAddress);
+            outputStream.writePacket(handshake.toHandshakePacket());
 
             // 2. Sends the empty request packet to the server
             outputStream.writePacket(REQUEST_PACKET);

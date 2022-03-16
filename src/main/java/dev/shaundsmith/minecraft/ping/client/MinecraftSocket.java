@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
 
 /**
  * Socket wrapper for performing socket-level interactions with a Minecraft server.
@@ -12,32 +11,34 @@ import java.net.SocketException;
  * @author Shaun Smith
  * @version 1.0.0
  */
-public class MinecraftSocket implements Closeable {
+class MinecraftSocket implements Closeable {
 
     private final Socket socket;
 
     /**
-     * Constructs a Minecraft socket for the provided address.
+     * Constructs a {@code MinecraftSocket} for the given address.
      *
-     * @param serverAddress address of the Minecraft server.
+     * @param serverAddress address of the Minecraft server
      *
      * @throws IOException if an error occurs whilst constructing the socket
      */
-    public MinecraftSocket(InetSocketAddress serverAddress) throws IOException {
+    MinecraftSocket(InetSocketAddress serverAddress) throws IOException {
         this.socket = new Socket(serverAddress.getHostString(), serverAddress.getPort());
     }
 
     /**
-     * Sets the timeout of the socket.
+     * Constructs a {@code MinecraftSocket} for the given address and with the given ticket period.
      *
-     * <p>A timeout of 0 seconds is treated as an infinite timeout period.
+     * @param serverAddress address of the Minecraft server
+     * @param timeout the timeout of the socket (in milliseconds)
      *
-     * @param timeout timeout of the socket (in milliseconds)
+     * @throws IOException if an error occurs whilst constructing the socket
      *
-     * @throws SocketException if an error in the underlying protocol
+     * @implNote a timeout of 0 is treated as an infinite timeout period
      */
-    public void setTimeout(int timeout) throws SocketException {
-        socket.setSoTimeout(timeout);
+    MinecraftSocket(InetSocketAddress serverAddress, int timeout) throws IOException {
+        this(serverAddress);
+        this.socket.setSoTimeout(timeout);
     }
 
     @Override
