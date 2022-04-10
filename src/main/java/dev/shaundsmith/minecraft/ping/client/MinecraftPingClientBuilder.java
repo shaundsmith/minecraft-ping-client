@@ -3,27 +3,45 @@ package dev.shaundsmith.minecraft.ping.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 
+import java.net.InetSocketAddress;
+
 /**
  * Builder for creating {@link MinecraftPingClient}s.
  *
  * @author Shaun Smith
  * @version 1.0.0
  */
+@SuppressWarnings("unused")
 public class MinecraftPingClientBuilder {
 
-    private Integer timeout;
+    private final InetSocketAddress serverAddress;
+    private Integer timeout = 30000;
     private ObjectMapper objectMapper;
+
+    /**
+     * Constructs a new {@code MinecraftPingClientBuilder}.
+     *
+     * @param serverHost the host name of the server
+     * @param serverPort the port that the Minecraft server is running on
+     */
+    public MinecraftPingClientBuilder(@NonNull String serverHost, int serverPort) {
+        this.serverAddress = new InetSocketAddress(serverHost, serverPort);
+    }
 
     /**
      * Sets a timeout period for the {@code MinecraftPingClient} requests.
      *
-     * <p>A timeout period of '0' is the equivalent of no timeout
+     * <p>A timeout period of '0' is the equivalent of no timeout period
      *
      * @param timeout the timeout period (in milliseconds)
      *
      * @return this builder
      */
     public MinecraftPingClientBuilder withTimeout(int timeout) {
+
+        if (timeout < 0) {
+            throw new IllegalArgumentException("Timeout cannot be negative. Value: " + timeout);
+        }
 
         this.timeout = timeout;
         return this;
@@ -53,7 +71,7 @@ public class MinecraftPingClientBuilder {
                         MinecraftSocket::new :
                         socketAddress -> new MinecraftSocket(socketAddress, timeout);
 
-        return new MinecraftPingClient(socketFactory, getObjectMapper());
+        return new MinecraftPingClient(serverAddress, socketFactory, getObjectMapper());
     }
 
     private ObjectMapper getObjectMapper() {
