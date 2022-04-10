@@ -2,7 +2,10 @@ package dev.shaundsmith.minecraft.ping.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.shaundsmith.minecraft.ping.exception.MinecraftClientException;
-import dev.shaundsmith.minecraft.ping.response.MinecraftStatus;
+import dev.shaundsmith.minecraft.ping.response.MinecraftServerResponse;
+import dev.shaundsmith.minecraft.ping.response.Mod;
+import dev.shaundsmith.minecraft.ping.response.ModLoader;
+import dev.shaundsmith.minecraft.ping.response.Players;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,8 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 
-import static dev.shaundsmith.minecraft.ping.response.MinecraftStatusBuilder.aMinecraftStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,18 +27,20 @@ import static org.mockito.Mockito.mock;
 class MinecraftPingClientTest {
 
     private static final InetSocketAddress ANY_SERVER_ADDRESS = new InetSocketAddress("http://example.com", 2389);
-    private static final byte[] ANY_HANDSHAKE = new byte[]{12, -4, 80, 127, 38};
 
-    @Mock private MinecraftOutputStream mockedOutputStream;
-    @Mock private MinecraftInputStream mockedInputStream;
-    @Mock private MinecraftSocket mockedSocket;
+    @Mock
+    private MinecraftOutputStream mockedOutputStream;
+    @Mock
+    private MinecraftInputStream mockedInputStream;
+    @Mock
+    private MinecraftSocket mockedSocket;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private MinecraftPingClient theClient;
 
     @BeforeEach
     void beforeEach() throws Exception {
-        theClient = new MinecraftPingClient(address -> mockedSocket, objectMapper);
+        theClient = new MinecraftPingClient(ANY_SERVER_ADDRESS, address -> mockedSocket, objectMapper);
         given(mockedSocket.getInputStream()).willReturn(mockedInputStream);
         given(mockedSocket.getOutputStream()).willReturn(mockedOutputStream);
     }
@@ -48,9 +53,9 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
         given(mockedSocketFactory.createSocket(any())).willReturn(mockedSocket);
-        theClient = new MinecraftPingClient(mockedSocketFactory, objectMapper);
+        theClient = new MinecraftPingClient(theServerAddress, mockedSocketFactory, objectMapper);
 
-        theClient.getStatus(theServerAddress);
+        theClient.ping();
 
         then(mockedSocketFactory).should().createSocket(theServerAddress);
     }
@@ -61,7 +66,7 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
 
-        theClient.getStatus(ANY_SERVER_ADDRESS);
+        theClient.ping();
 
         then(mockedOutputStream).should()
                 .writePacket(new Handshake(0x00, ANY_SERVER_ADDRESS).toHandshakePacket());
@@ -73,7 +78,7 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         givenAResponseBodyIsReturned();
 
-        theClient.getStatus(ANY_SERVER_ADDRESS);
+        theClient.ping();
 
         then(mockedOutputStream).should().writePacket(new byte[]{0x00});
     }
@@ -81,14 +86,33 @@ class MinecraftPingClientTest {
     @Test
     void parses_the_json_response_returned_from_the_server() throws Exception {
 
-        MinecraftStatus expectedStatus = aMinecraftStatus().build();
-        String json = objectMapper.writeValueAsString(expectedStatus);
+        //language=json
+        String json = "{" +
+                "\"description\": { \"text\": \"My minecraft server\" }," +
+                "\"version\": { \"name\": \"1.12.2\" }," +
+                "\"players\": {" +
+                "    \"max\": 10," +
+                "    \"online\": 1," +
+                "    \"sample\": [{ \"name\": \"Shaun\" }]" +
+                "}," +
+                "\"modinfo\": {" +
+                "    \"type\": \"forge\"," +
+                "    \"modList\": [{ \"modid\": \"my-mod\", \"version\": \"1.1a\" }]" +
+                "}," +
+                "\"favicon\": \"data:jpg:lots+of+data\"" +
+                "}";
         givenTheResponsePacketIsReturned();
         given(mockedInputStream.readString()).willReturn(json);
 
-        MinecraftStatus returnedStatus = theClient.getStatus(ANY_SERVER_ADDRESS);
+        MinecraftServerResponse response = theClient.ping();
 
-        assertThat(returnedStatus).isEqualTo(expectedStatus);
+        assertThat(response).isEqualTo(MinecraftServerResponse.builder()
+                .serverDescription("My minecraft server")
+                .serverIcon("data:jpg:lots+of+data")
+                .serverVersion("1.12.2")
+                .players(new Players(10, 1, Collections.singletonList("Shaun")))
+                .modLoader(new ModLoader("forge", Collections.singletonList(new Mod("my-mod", "1.1a"))))
+                .build());
     }
 
     @Test
@@ -96,7 +120,7 @@ class MinecraftPingClientTest {
 
         given(mockedInputStream.readVarInt()).willReturn(VarInt.of(0x01));
 
-        Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
+        Throwable theException = catchThrowable(() -> theClient.ping());
 
         assertThat(theException)
                 .isInstanceOf(MinecraftClientException.class)
@@ -110,7 +134,7 @@ class MinecraftPingClientTest {
         givenTheResponsePacketIsReturned();
         given(mockedInputStream.readString()).willReturn(json);
 
-        Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
+        Throwable theException = catchThrowable(() -> theClient.ping());
 
         assertThat(theException)
                 .isInstanceOf(MinecraftClientException.class)
@@ -123,7 +147,7 @@ class MinecraftPingClientTest {
 
         given(mockedInputStream.readVarInt()).willThrow(new IOException(""));
 
-        Throwable theException = catchThrowable(() -> theClient.getStatus(ANY_SERVER_ADDRESS));
+        Throwable theException = catchThrowable(() -> theClient.ping());
 
         assertThat(theException)
                 .isInstanceOf(MinecraftClientException.class)

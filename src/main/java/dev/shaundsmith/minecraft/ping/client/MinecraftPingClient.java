@@ -2,7 +2,7 @@ package dev.shaundsmith.minecraft.ping.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.shaundsmith.minecraft.ping.exception.MinecraftClientException;
-import dev.shaundsmith.minecraft.ping.response.MinecraftStatus;
+import dev.shaundsmith.minecraft.ping.response.MinecraftServerResponse;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -18,39 +18,41 @@ public class MinecraftPingClient {
 
     private static final byte[] REQUEST_PACKET = new byte[]{0x00};
 
+    private final InetSocketAddress serverAddress;
     private final SocketFactory socketFactory;
     private final ObjectMapper objectMapper;
 
     /**
      * Constructs a new Minecraft ping client.
      *
+     * @param serverAddress the address of the Minecraft server
      * @param socketFactory factory for creating sockets for a given socket address
      * @param objectMapper  object mapper for deserializing JSON payloads from the Minecraft server
      */
-    MinecraftPingClient(@NonNull SocketFactory socketFactory,
+    MinecraftPingClient(@NonNull InetSocketAddress serverAddress,
+                        @NonNull SocketFactory socketFactory,
                         @NonNull ObjectMapper objectMapper) {
+        this.serverAddress = serverAddress;
         this.socketFactory = socketFactory;
         this.objectMapper = objectMapper;
     }
 
     /**
-     * Retrieves the status of a Minecraft server from a ping request.
+     * Retrieves the response of a Minecraft server from a ping request.
      *
-     * @param serverAddress the address of the minecraft server
-     *
-     * @return the status of the Minecraft server
+     * @return the ping response of the Minecraft server
      *
      * @throws MinecraftClientException if an error occurs whilst connecting to the server
      * @throws MinecraftClientException if the server response is incorrectly formatted
      */
-    public MinecraftStatus getStatus(@NonNull InetSocketAddress serverAddress) throws MinecraftClientException {
+    public MinecraftServerResponse ping() throws MinecraftClientException {
         String jsonResponse;
 
         /*
            Makes two requests and then expects a response to be returned from the running Minecraft instance.
              1. Sends a 'handshake' package to the server
              2. Sends an empty request packet, containing no fields and an ID of 0x00
-             3. Retrieves the response packet containing a JSON string with the Minecraft server status.
+             3. Retrieves the response packet containing a JSON string with the Minecraft server response.
 
            Based on the client-server protocol described in https://wiki.vg/Server_List_Ping.
          */
@@ -81,7 +83,7 @@ public class MinecraftPingClient {
             throw new MinecraftClientException("An error occurred whilst making the request to the Minecraft server at " + serverAddress, e);
         }
         try {
-            return objectMapper.readValue(jsonResponse, MinecraftStatus.class);
+            return objectMapper.readValue(jsonResponse, MinecraftServerResponse.class);
         } catch (IOException e) {
             throw new MinecraftClientException("Invalid response from server. Cannot parse response body: " + jsonResponse, e);
         }
